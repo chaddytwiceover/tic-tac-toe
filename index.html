@@ -17,7 +17,7 @@
     <header>
       <div class="brand">
         <h1>Tic Tac Toe</h1>
-        <p>Project_TTT_v3.0 // Production-Ready Refactor</p>
+        <p>Neural Grid Challenge <span class="version">v3.0</span></p>
       </div>
       <a href="../index.html" class="back-link" aria-label="Back to The Lab">&larr; Back to The Lab</a>
     </header>
@@ -25,19 +25,23 @@
     <main>
       <section class="controls">
         <div id="difficulty-selector" class="difficulty-selector" role="radiogroup" aria-label="AI Difficulty">
-          <span class="difficulty-label">AI_DIFFICULTY:</span>
+          <span class="difficulty-label">AI Difficulty</span>
           <div class="radio-group">
             <input type="radio" id="easy" name="difficulty" value="easy" checked />
-            <label for="easy">EASY</label>
+            <label for="easy">Casual</label>
+          </div>
+          <div class="radio-group">
+            <input type="radio" id="medium" name="difficulty" value="medium" />
+            <label for="medium">Strategic</label>
           </div>
           <div class="radio-group">
             <input type="radio" id="hard" name="difficulty" value="hard" />
-            <label for="hard">HARD</label>
+            <label for="hard">Expert</label>
           </div>
         </div>
 
         <div id="human-selector" class="difficulty-selector" role="radiogroup" aria-label="You Play As">
-          <span class="difficulty-label">YOU_PLAY_AS:</span>
+          <span class="difficulty-label">You Play As</span>
           <div class="radio-group">
             <input type="radio" id="human-x" name="human" value="x" checked />
             <label for="human-x">X</label>
@@ -51,15 +55,15 @@
 
       <section class="scoreboard" aria-label="Scoreboard">
         <div class="score chip">
-          <span class="score-label">X</span>
+          <span class="score-label">X Wins</span>
           <span id="score-x" class="score-value">0</span>
         </div>
         <div class="score chip">
-          <span class="score-label">O</span>
+          <span class="score-label">O Wins</span>
           <span id="score-o" class="score-value">0</span>
         </div>
         <div class="score chip">
-          <span class="score-label">DRAW</span>
+          <span class="score-label">Draws</span>
           <span id="score-draw" class="score-value">0</span>
         </div>
       </section>
@@ -83,8 +87,8 @@
       <div id="status-display" class="status-display" role="status" aria-live="polite">Your move (X)</div>
 
       <div class="actions">
-        <button id="restart-button" class="restart-button" aria-label="Start New Round">NEW_ROUND</button>
-        <button id="reset-scores" class="restart-button alt" aria-label="Reset Scores">RESET_SCORES</button>
+        <button id="restart-button" class="action-button primary" aria-label="Start New Round">New Round</button>
+        <button id="reset-scores" class="action-button secondary" aria-label="Reset Scores">Reset Scores</button>
       </div>
     </main>
   </div>

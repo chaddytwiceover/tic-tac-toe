@@ -1,8 +1,8 @@
-// /script.js - v3.0 Production Refactor
+// /script.js - v3.1 Enhanced Game Logic
 /**
- * Tic Tac Toe Game - Production Ready Version
- * Features: Robust state management, consistent winning line animations,
- * improved error handling, and optimized performance.
+ * Tic Tac Toe Game - Enhanced with Strategic AI
+ * Features: Three difficulty levels, improved game logic,
+ * strategic rule-based AI, and optimized minimax algorithm.
  */
 
 class TicTacToeGame {
@@ -16,7 +16,12 @@ class TicTacToeGame {
       [0,4,8], [2,4,6]           // Diagonals
     ];
     this.STORAGE_KEY = 'ttt_scores_v3';
-    this.AI_DELAY = 550;
+    this.AI_DELAY = 650; // Slightly longer for better UX
+
+    // Strategic positions for medium AI
+    this.CENTER = 4;
+    this.CORNERS = [0, 2, 6, 8];
+    this.EDGES = [1, 3, 5, 7];
 
     // DOM elements
     this.elements = this.initializeElements();
@@ -63,7 +68,8 @@ class TicTacToeGame {
       scores: { x: 0, o: 0, d: 0 },
       board: new Array(9).fill(null),
       keyboardIndex: 0,
-      gameHistory: []
+      gameHistory: [],
+      moveCount: 0
     };
   }
 
@@ -114,7 +120,12 @@ class TicTacToeGame {
     const selectedDifficulty = this.elements.difficultyRadios.find(r => r.checked)?.value;
     if (selectedDifficulty && selectedDifficulty !== this.state.difficulty) {
       this.state.difficulty = selectedDifficulty;
-      this.setStatus(`AI Difficulty: ${selectedDifficulty.toUpperCase()}${this.state.gameActive ? ' - Applied!' : ''}`);
+      const difficultyNames = {
+        'easy': 'Casual',
+        'medium': 'Strategic', 
+        'hard': 'Expert'
+      };
+      this.setStatus(`AI Difficulty: ${difficultyNames[selectedDifficulty]}${this.state.gameActive ? ' - Applied!' : ''}`);
     }
   }
 
@@ -127,7 +138,7 @@ class TicTacToeGame {
       this.elements.humanRadios.forEach(radio => {
         radio.checked = radio.value === this.state.humanPlayer;
       });
-      this.setStatus('Cannot change player mid-game. Start NEW_ROUND first.');
+      this.setStatus('Cannot change player mid-game. Start New Round first.');
       return;
     }
 
@@ -149,6 +160,8 @@ class TicTacToeGame {
     this.state.currentPlayer = this.PLAYER_X;
     this.state.board.fill(null);
     this.state.keyboardIndex = 0;
+    this.state.moveCount = 0;
+    this.state.gameHistory = [];
 
     // Reset UI
     this.resetBoard();
@@ -194,13 +207,18 @@ class TicTacToeGame {
     const cell = event.currentTarget;
     const cellIndex = parseInt(cell.dataset.index);
     
+    // Validate cell index
+    if (cellIndex < 0 || cellIndex > 8) return;
+    
     // Only allow human moves during human turn
     if (this.state.currentPlayer !== this.state.humanPlayer) {
+      this.setStatus('Wait for your turn!');
       return;
     }
     
     // Check if cell is already occupied
     if (this.state.board[cellIndex] !== null) {
+      this.setStatus('Cell already occupied!');
       return;
     }
 
@@ -216,15 +234,28 @@ class TicTacToeGame {
   }
 
   makeMove(index, player) {
+    // Validate move
+    if (index < 0 || index > 8 || this.state.board[index] !== null) {
+      return false;
+    }
+
     // Update game state
     this.state.board[index] = player;
+    this.state.moveCount++;
     
     // Update UI
     const cell = this.elements.cells[index];
     this.markCell(cell, player);
     
     // Add to game history
-    this.state.gameHistory.push({ index, player, timestamp: Date.now() });
+    this.state.gameHistory.push({ 
+      index, 
+      player, 
+      moveNumber: this.state.moveCount,
+      timestamp: Date.now() 
+    });
+
+    return true;
   }
 
   markCell(cell, player) {
@@ -232,6 +263,7 @@ class TicTacToeGame {
     cell.textContent = player.toUpperCase();
     const cellNum = parseInt(cell.dataset.index) + 1;
     cell.setAttribute('aria-label', `Cell ${cellNum}: ${player.toUpperCase()}`);
+    cell.disabled = true; // Prevent further clicks
   }
 
   scheduleAIMove() {
@@ -239,7 +271,7 @@ class TicTacToeGame {
       return;
     }
     
-    this.setStatus('AI thinking...');
+    this.setStatus('AI analyzing neural pathways...');
     setTimeout(() => this.makeAIMove(), this.AI_DELAY);
   }
 
@@ -252,7 +284,8 @@ class TicTacToeGame {
     if (bestMove === null) return;
 
     // Make AI move
-    this.makeMove(bestMove, this.state.aiPlayer);
+    const success = this.makeMove(bestMove, this.state.aiPlayer);
+    if (!success) return;
     
     // Check for game end
     if (this.checkGameEnd()) return;
@@ -269,56 +302,231 @@ class TicTacToeGame {
     const emptyIndices = this.getEmptyIndices();
     if (emptyIndices.length === 0) return null;
 
-    if (this.state.difficulty === 'hard') {
-      const result = this.minimax(this.state.board, this.state.aiPlayer, true);
-      return result.index;
-    } else {
-      // Easy mode - random move
-      return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    switch (this.state.difficulty) {
+      case 'easy':
+        return this.getRandomMove(emptyIndices);
+      
+      case 'medium':
+        return this.getStrategicMove(emptyIndices);
+      
+      case 'hard':
+        return this.getOptimalMove();
+      
+      default:
+        return this.getRandomMove(emptyIndices);
     }
   }
 
-  minimax(board, player, isMaximizing, depth = 0) {
-    const score = this.evaluateBoard(board);
+  // Easy AI: Random moves with slight preference for center/corners
+  getRandomMove(emptyIndices) {
+    // 30% chance to prefer center or corners if available
+    if (Math.random() < 0.3) {
+      const preferredMoves = emptyIndices.filter(index => 
+        index === this.CENTER || this.CORNERS.includes(index)
+      );
+      if (preferredMoves.length > 0) {
+        return preferredMoves[Math.floor(Math.random() * preferredMoves.length)];
+      }
+    }
     
-    // Terminal states
-    if (score === 10) return { score: score - depth };
-    if (score === -10) return { score: score + depth };
-    if (this.getEmptyIndices(board).length === 0) return { score: 0 };
+    return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+  }
+
+  // Medium AI: Strategic rule-based decisions
+  getStrategicMove(emptyIndices) {
+    // 1. Try to win
+    const winMove = this.findWinningMove(this.state.aiPlayer);
+    if (winMove !== null) return winMove;
     
-    const moves = [];
-    const emptyIndices = this.getEmptyIndices(board);
+    // 2. Block opponent's win
+    const blockMove = this.findWinningMove(this.state.humanPlayer);
+    if (blockMove !== null) return blockMove;
+    
+    // 3. Fork opportunity (create two ways to win)
+    const forkMove = this.findForkMove(this.state.aiPlayer);
+    if (forkMove !== null) return forkMove;
+    
+    // 4. Block opponent's fork
+    const blockForkMove = this.findBlockForkMove();
+    if (blockForkMove !== null) return blockForkMove;
+    
+    // 5. Take center if available
+    if (emptyIndices.includes(this.CENTER)) {
+      return this.CENTER;
+    }
+    
+    // 6. Take opposite corner if opponent is in corner
+    const oppositeCorner = this.findOppositeCorner();
+    if (oppositeCorner !== null && emptyIndices.includes(oppositeCorner)) {
+      return oppositeCorner;
+    }
+    
+    // 7. Take any available corner
+    const availableCorners = this.CORNERS.filter(corner => emptyIndices.includes(corner));
+    if (availableCorners.length > 0) {
+      return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+    }
+    
+    // 8. Take any available edge
+    const availableEdges = this.EDGES.filter(edge => emptyIndices.includes(edge));
+    if (availableEdges.length > 0) {
+      return availableEdges[Math.floor(Math.random() * availableEdges.length)];
+    }
+    
+    // Fallback: random move
+    return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+  }
+
+  // Hard AI: Minimax with alpha-beta pruning
+  getOptimalMove() {
+    const result = this.minimax(this.state.board, this.state.aiPlayer, true, 0, -Infinity, Infinity);
+    return result.index;
+  }
+
+  // Strategic helper methods
+  findWinningMove(player) {
+    for (const combo of this.WINNING_COMBINATIONS) {
+      const positions = combo.map(index => this.state.board[index]);
+      const playerCount = positions.filter(pos => pos === player).length;
+      const emptyCount = positions.filter(pos => pos === null).length;
+      
+      if (playerCount === 2 && emptyCount === 1) {
+        return combo[positions.indexOf(null)];
+      }
+    }
+    return null;
+  }
+
+  findForkMove(player) {
+    const emptyIndices = this.getEmptyIndices();
     
     for (const index of emptyIndices) {
-      const move = { index };
+      // Temporarily place piece
+      this.state.board[index] = player;
       
+      // Count winning opportunities
+      let winningMoves = 0;
+      for (const combo of this.WINNING_COMBINATIONS) {
+        const positions = combo.map(i => this.state.board[i]);
+        const playerCount = positions.filter(pos => pos === player).length;
+        const emptyCount = positions.filter(pos => pos === null).length;
+        
+        if (playerCount === 2 && emptyCount === 1) {
+          winningMoves++;
+        }
+      }
+      
+      // Remove temporary piece
+      this.state.board[index] = null;
+      
+      // Fork found if we have 2+ winning opportunities
+      if (winningMoves >= 2) {
+        return index;
+      }
+    }
+    
+    return null;
+  }
+
+  findBlockForkMove() {
+    const humanFork = this.findForkMove(this.state.humanPlayer);
+    if (humanFork !== null) return humanFork;
+    
+    // If opponent has multiple fork opportunities, force them to defend
+    const emptyIndices = this.getEmptyIndices();
+    for (const index of emptyIndices) {
+      this.state.board[index] = this.state.aiPlayer;
+      
+      const forcedDefense = this.findWinningMove(this.state.aiPlayer);
+      if (forcedDefense !== null) {
+        // Check if this forces opponent to defend instead of creating forks
+        this.state.board[forcedDefense] = this.state.humanPlayer;
+        const remainingForks = this.findForkMove(this.state.humanPlayer);
+        this.state.board[forcedDefense] = null;
+        
+        if (remainingForks === null) {
+          this.state.board[index] = null;
+          return index;
+        }
+      }
+      
+      this.state.board[index] = null;
+    }
+    
+    return null;
+  }
+
+  findOppositeCorner() {
+    const opposites = [[0, 8], [2, 6], [6, 2], [8, 0]];
+    
+    for (const [corner, opposite] of opposites) {
+      if (this.state.board[corner] === this.state.humanPlayer && 
+          this.state.board[opposite] === null) {
+        return opposite;
+      }
+    }
+    
+    return null;
+  }
+
+  // Enhanced minimax with alpha-beta pruning for better performance
+  minimax(board, player, isMaximizing, depth = 0, alpha = -Infinity, beta = Infinity) {
+    const score = this.evaluateBoard(board);
+    
+    // Terminal states with depth consideration for optimal play
+    if (score === 10) return { score: score - depth, index: null };
+    if (score === -10) return { score: score + depth, index: null };
+    if (this.getEmptyIndices(board).length === 0) return { score: 0, index: null };
+    
+    // Depth limit for performance (shouldn't be needed for 3x3 but good practice)
+    if (depth > 8) return { score: 0, index: null };
+    
+    const emptyIndices = this.getEmptyIndices(board);
+    let bestMove = { score: isMaximizing ? -Infinity : Infinity, index: emptyIndices[0] };
+    
+    for (const index of emptyIndices) {
       // Make move
       board[index] = player;
       
       // Recursive call
-      if (isMaximizing) {
-        move.score = this.minimax(board, this.state.humanPlayer, false, depth + 1).score;
-      } else {
-        move.score = this.minimax(board, this.state.aiPlayer, true, depth + 1).score;
-      }
+      const result = this.minimax(
+        board, 
+        isMaximizing ? this.state.humanPlayer : this.state.aiPlayer, 
+        !isMaximizing, 
+        depth + 1,
+        alpha,
+        beta
+      );
       
       // Undo move
       board[index] = null;
-      moves.push(move);
+      
+      // Update best move
+      if (isMaximizing) {
+        if (result.score > bestMove.score) {
+          bestMove = { score: result.score, index };
+        }
+        alpha = Math.max(alpha, result.score);
+      } else {
+        if (result.score < bestMove.score) {
+          bestMove = { score: result.score, index };
+        }
+        beta = Math.min(beta, result.score);
+      }
+      
+      // Alpha-beta pruning
+      if (beta <= alpha) {
+        break;
+      }
     }
-
-    // Find best move
-    if (isMaximizing) {
-      return moves.reduce((best, move) => move.score > best.score ? move : best);
-    } else {
-      return moves.reduce((best, move) => move.score < best.score ? move : best);
-    }
+    
+    return bestMove;
   }
 
   evaluateBoard(board) {
     // Check if AI wins
     if (this.checkWinner(board, this.state.aiPlayer)) return 10;
-    // Check if human wins
+    // Check if human wins  
     if (this.checkWinner(board, this.state.humanPlayer)) return -10;
     // No winner
     return 0;
@@ -356,7 +564,7 @@ class TicTacToeGame {
   }
 
   isDraw() {
-    return this.state.board.every(cell => cell !== null);
+    return this.state.board.every(cell => cell !== null) && !this.getWinningCombination();
   }
 
   isBoardEmpty() {
@@ -373,7 +581,7 @@ class TicTacToeGame {
     
     if (isDraw) {
       this.state.scores.d++;
-      this.setStatus('SYSTEM_CALL: DRAW');
+      this.setStatus('Neural Grid Equilibrium - Draw!');
       this.elements.statusDisplay.classList.add('draw');
     } else {
       // Update scores
@@ -386,7 +594,11 @@ class TicTacToeGame {
       // Show winning line with proper positioning
       this.showWinningLine(winningCombo, winner);
       
-      this.setStatus(`Player ${winner.toUpperCase()} Wins!`);
+      const isPlayerWin = winner === this.state.humanPlayer;
+      this.setStatus(isPlayerWin ? 
+        `Victory! You Conquered the Grid!` : 
+        `AI Dominates the Neural Network!`
+      );
       this.elements.statusDisplay.classList.add('win');
     }
     
@@ -406,7 +618,7 @@ class TicTacToeGame {
       this.elements.winningLine.classList.add(`win-${comboIndex}`);
       this.elements.winningLine.classList.add(`${winner}-win`);
       this.elements.winningLine.classList.add('show');
-    }, 100);
+    }, 150);
   }
 
   switchTurns() {
@@ -415,9 +627,9 @@ class TicTacToeGame {
 
   updateTurnStatus() {
     if (this.state.currentPlayer === this.state.humanPlayer) {
-      this.setStatus(`Your move (${this.state.humanPlayer.toUpperCase()})`);
+      this.setStatus(`Your Neural Turn (${this.state.humanPlayer.toUpperCase()})`);
     } else {
-      this.setStatus('AI thinking...');
+      this.setStatus('AI analyzing neural pathways...');
     }
   }
 
@@ -443,7 +655,7 @@ class TicTacToeGame {
     this.state.scores = { x: 0, o: 0, d: 0 };
     this.saveScores();
     this.renderScores();
-    this.setStatus('Scores reset');
+    this.setStatus('Neural Grid Statistics Purged');
   }
 
   handleKeyboardNavigation(event) {
