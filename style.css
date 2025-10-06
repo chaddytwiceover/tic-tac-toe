@@ -62,9 +62,10 @@ body{
   min-height:100vh;
   padding:var(--spacing-md);
   display:flex;
-  align-items:center;
+  align-items: flex-start; /* Changed from center */
   justify-content:center;
   line-height:1.6;
+  overflow-y: auto; /* Added for scrolling on smaller screens */
 }
 
 .backdrop{
