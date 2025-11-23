@@ -286,9 +286,9 @@ class TicTacToeGame {
   }
 
   // --- Win Condition Check ---
-  checkForWin(player) {
+  checkForWin(player, board = this.state.board) {
     return this.WINNING_COMBINATIONS.some(combo =>
-      combo.every(index => this.state.board[index] === player)
+      combo.every(index => board[index] === player)
     );
   }
 
@@ -520,8 +520,8 @@ class TicTacToeGame {
   }
 
   evaluateBoard(board) {
-    if (this.checkForWin(board, this.state.aiPlayer)) return 10;
-    if (this.checkForWin(board, this.state.humanPlayer)) return -10;
+    if (this.checkForWin(this.state.aiPlayer, board)) return 10;
+    if (this.checkForWin(this.state.humanPlayer, board)) return -10;
     return 0;
   }
 
