@@ -128,7 +128,9 @@ class TicTacToeGame {
         'medium': 'Strategic', 
         'hard': 'Expert (Unbeatable)'
       };
-      this.setStatus(`AI DIFFICULTY SET TO: ${difficultyNames[selectedDifficulty].toUpperCase()}${this.state.gameState === this.GAME_STATES.PLAYING ? ' - APPLIED TO NEXT MOVE' : ''}`);
+      const difficultyName = difficultyNames[selectedDifficulty].toUpperCase();
+      const appliedNote = this.state.gameState === this.GAME_STATES.PLAYING ? ' - APPLIED TO NEXT MOVE' : '';
+      this.setStatus(`AI DIFFICULTY SET TO: ${difficultyName}${appliedNote}`);
     }
   }
 
