@@ -1,16 +1,13 @@
-// /script.js - v3.2 Cyberpunk Logic Integration
+// /script.js - Tic Tac Toe Game
 /**
- * Tic Tac Toe Game - Enhanced with Strategic AI & Cyberpunk Theme
- * Features: Three difficulty levels, improved game logic,
- * strategic rule-based AI, and optimized minimax algorithm.
- * Logic based on provided cyberpunk pseudocode.
+ * Clean, focused Tic Tac Toe with AI opponent.
+ * Features: Three difficulty levels, minimax AI.
  */
 
 class TicTacToeGame {
   constructor() {
-    // --- Game State Variables ---
-    this.PLAYER_X = 'x'; // Represents a 'glitching data packet'
-    this.PLAYER_O = 'o'; // Represents a 'neural data vortex'
+    this.PLAYER_X = 'x';
+    this.PLAYER_O = 'o';
     this.GAME_STATES = {
       PLAYING: 'PLAYING',
       X_WINS: 'X_WINS',
@@ -18,25 +15,18 @@ class TicTacToeGame {
       DRAW: 'DRAW'
     };
     this.WINNING_COMBINATIONS = [
-      [0,1,2], [3,4,5], [6,7,8], // Rows
-      [0,3,6], [1,4,7], [2,5,8], // Columns  
-      [0,4,8], [2,4,6]           // Diagonals
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
     ];
     this.STORAGE_KEY = 'ttt_scores_v3';
-    this.AI_DELAY = 650;
-
-    // Strategic positions for medium AI
+    this.AI_DELAY = 500;
     this.CENTER = 4;
     this.CORNERS = [0, 2, 6, 8];
     this.EDGES = [1, 3, 5, 7];
 
-    // DOM elements
     this.elements = this.initializeElements();
-    
-    // Game state
     this.state = this.initializeState();
-    
-    // Initialize game
     this.init();
   }
 
@@ -55,7 +45,6 @@ class TicTacToeGame {
       scoreDraw: document.getElementById('score-draw')
     };
 
-    // Validate all elements exist
     Object.entries(elements).forEach(([key, value]) => {
       if (!value || (Array.isArray(value) && value.length === 0)) {
         throw new Error(`Required element not found: ${key}`);
@@ -73,22 +62,21 @@ class TicTacToeGame {
       currentPlayer: this.PLAYER_X,
       difficulty: 'easy',
       scores: { x: 0, o: 0, d: 0 },
-      board: new Array(9).fill(null), // Represents the 3x3 grid, null is EMPTY
+      board: new Array(9).fill(null),
       keyboardIndex: 0,
       moveCount: 0
     };
   }
 
-  // --- Game Initialization ---
   init() {
     try {
       this.loadScores();
       this.renderScores();
       this.attachEventListeners();
-      this.startNewRound(); // Corresponds to InitializeGame from pseudocode
+      this.startNewRound();
     } catch (error) {
       console.error('Game initialization failed:', error);
-      this.setStatus('Game initialization failed. Please refresh.');
+      this.setStatus('Error loading game');
     }
   }
 
@@ -115,7 +103,6 @@ class TicTacToeGame {
 
     this.elements.restartButton.addEventListener('click', () => this.startNewRound());
     this.elements.resetScoresBtn.addEventListener('click', () => this.resetScores());
-
     this.elements.board.addEventListener('keydown', (e) => this.handleKeyboardNavigation(e));
   }
 
@@ -123,12 +110,6 @@ class TicTacToeGame {
     const selectedDifficulty = this.elements.difficultyRadios.find(r => r.checked)?.value;
     if (selectedDifficulty && selectedDifficulty !== this.state.difficulty) {
       this.state.difficulty = selectedDifficulty;
-      const difficultyNames = {
-        'easy': 'Casual',
-        'medium': 'Strategic', 
-        'hard': 'Expert'
-      };
-      this.setStatus(`AI Difficulty: ${difficultyNames[selectedDifficulty]}${this.state.gameState === this.GAME_STATES.PLAYING ? ' - Applied!' : ''}`);
     }
   }
 
@@ -140,38 +121,31 @@ class TicTacToeGame {
       this.elements.humanRadios.forEach(radio => {
         radio.checked = radio.value === this.state.humanPlayer;
       });
-      this.setStatus('Cannot change player mid-game. Start New Round first.');
       return;
     }
 
     if (selectedPlayer && selectedPlayer !== this.state.humanPlayer) {
       this.state.humanPlayer = selectedPlayer;
       this.state.aiPlayer = selectedPlayer === this.PLAYER_X ? this.PLAYER_O : this.PLAYER_X;
-      this.startNewRound(); // Restart the round to apply the change cleanly
+      this.startNewRound();
     }
   }
 
   startNewRound() {
-    // Reset game state
     this.state.gameState = this.GAME_STATES.PLAYING;
     this.state.currentPlayer = this.PLAYER_X;
-    this.state.board.fill(null); // All neural nodes are initially unactivated
+    this.state.board.fill(null);
     this.state.keyboardIndex = 0;
     this.state.moveCount = 0;
 
-    // Reset UI
     this.resetBoard();
     this.resetWinningLine();
     this.elements.statusDisplay.classList.remove('win', 'draw');
-
-    // Focus first cell
     this.elements.cells[0].focus();
+    this.setStatus('Your turn');
 
-    // Update display
-    this.setStatus(`Welcome to Cyber-Tic-Tac-Toe! Player ${this.state.currentPlayer.toUpperCase()}, make your move.`);
-
-    // If AI starts (human is O), schedule AI move
     if (this.state.currentPlayer === this.state.aiPlayer) {
+      this.setStatus('AI is thinking...');
       this.scheduleAIMove();
     }
   }
@@ -195,38 +169,23 @@ class TicTacToeGame {
     this.elements.winningLine.className = 'winning-line';
   }
 
-  // --- Player Input and Move Processing ---
   handlePlayerInput(event) {
-    if (this.state.gameState !== this.GAME_STATES.PLAYING) {
-        this.setStatus("Game is over! Start a new game.");
-        return;
-    }
+    if (this.state.gameState !== this.GAME_STATES.PLAYING) return;
     
     const cell = event.currentTarget;
     const cellIndex = parseInt(cell.dataset.index);
     
     if (cellIndex < 0 || cellIndex > 8) return;
-    
-    if (this.state.currentPlayer !== this.state.humanPlayer) {
-      this.setStatus('Wait for your turn!');
-      return;
-    }
-    
-    if (this.state.board[cellIndex] !== null) {
-      this.setStatus('Neural node already occupied. Choose another.');
-      return;
-    }
+    if (this.state.currentPlayer !== this.state.humanPlayer) return;
+    if (this.state.board[cellIndex] !== null) return;
 
-    // Valid move, update the board
     this.makeMove(cellIndex, this.state.humanPlayer);
     
-    // Check for win or draw
     if (this.checkForWin(this.state.humanPlayer)) {
       this.endGame(false, this.state.humanPlayer);
     } else if (this.checkForDraw()) {
       this.endGame(true);
     } else {
-      // Switch player and schedule AI move
       this.switchTurns();
       this.scheduleAIMove();
     }
@@ -240,7 +199,6 @@ class TicTacToeGame {
     this.state.board[index] = player;
     this.state.moveCount++;
     
-    // RenderMove - Animate the placement of X or O
     const cell = this.elements.cells[index];
     this.renderMove(cell, player);
 
@@ -248,7 +206,6 @@ class TicTacToeGame {
   }
 
   renderMove(cell, player) {
-    // This function focuses on animating a single move.
     cell.classList.add('clicked', player);
     cell.textContent = player.toUpperCase();
     const cellNum = parseInt(cell.dataset.index) + 1;
@@ -261,7 +218,7 @@ class TicTacToeGame {
       return;
     }
     
-    this.setStatus('AI analyzing neural pathways...');
+    this.setStatus('AI is thinking...');
     setTimeout(() => this.makeAIMove(), this.AI_DELAY);
   }
 
@@ -285,17 +242,16 @@ class TicTacToeGame {
     }
   }
 
-  // --- Win Condition Check ---
   checkForWin(player, board = this.state.board) {
     return this.WINNING_COMBINATIONS.some(combo =>
       combo.every(index => board[index] === player)
     );
   }
 
-  // --- Draw Condition Check ---
   checkForDraw() {
-    // If any cell is empty, it's not a draw yet
-    return this.state.board.every(cell => cell !== null) && !this.checkForWin(this.PLAYER_X) && !this.checkForWin(this.PLAYER_O);
+    return this.state.board.every(cell => cell !== null) && 
+           !this.checkForWin(this.PLAYER_X) && 
+           !this.checkForWin(this.PLAYER_O);
   }
 
   getWinningCombination() {
@@ -311,17 +267,17 @@ class TicTacToeGame {
     if (isDraw) {
       this.state.gameState = this.GAME_STATES.DRAW;
       this.state.scores.d++;
-      this.setStatus("DRAW! Network Equilibrium Achieved.");
+      this.setStatus("It's a draw!");
       this.elements.statusDisplay.classList.add('draw');
     } else {
       this.state.gameState = winner === this.PLAYER_X ? this.GAME_STATES.X_WINS : this.GAME_STATES.O_WINS;
       
       if (winner === this.PLAYER_X) {
         this.state.scores.x++;
-        this.setStatus("PLAYER X WINS! Data Stream Activated!");
+        this.setStatus('X wins!');
       } else {
         this.state.scores.o++;
-        this.setStatus("PLAYER O WINS! Neural Network Assimilated!");
+        this.setStatus('O wins!');
       }
       
       const winningCombo = this.getWinningCombination();
@@ -336,7 +292,7 @@ class TicTacToeGame {
 
   switchTurns() {
     this.state.currentPlayer = this.state.currentPlayer === this.PLAYER_X ? this.PLAYER_O : this.PLAYER_X;
-    this.setStatus(`Player ${this.state.currentPlayer.toUpperCase()}, your turn.`);
+    this.setStatus('Your turn');
   }
   
   getBestAIMove() {
@@ -540,7 +496,7 @@ class TicTacToeGame {
       this.elements.winningLine.classList.add(`win-${comboIndex}`);
       this.elements.winningLine.classList.add(`${winner}-win`);
       this.elements.winningLine.classList.add('show');
-    }, 150);
+    }, 100);
   }
 
   setStatus(message) {
@@ -565,7 +521,7 @@ class TicTacToeGame {
     this.state.scores = { x: 0, o: 0, d: 0 };
     this.saveScores();
     this.renderScores();
-    this.setStatus('Neural Grid Statistics Purged');
+    this.setStatus('Scores reset');
   }
 
   handleKeyboardNavigation(event) {
@@ -619,16 +575,10 @@ class TicTacToeGame {
   }
 }
 
-// Initialize game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   try {
     new TicTacToeGame();
   } catch (error) {
-    console.error('Failed to initialize Tic Tac Toe game:', error);
-    const statusEl = document.getElementById('status-display');
-    if (statusEl) {
-      statusEl.textContent = 'Game failed to load. Please refresh the page.';
-      statusEl.style.color = '#ff6b6b';
-    }
+    console.error('Failed to initialize game:', error);
   }
 });
