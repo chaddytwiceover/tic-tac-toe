@@ -40,6 +40,8 @@ class TicTacToeGame {
       winningLine: document.getElementById('winning-line'),
       difficultyRadios: Array.from(document.querySelectorAll('input[name="difficulty"]')),
       humanRadios: Array.from(document.querySelectorAll('input[name="human"]')),
+      xColorRadios: Array.from(document.querySelectorAll('input[name="x-color"]')),
+      oColorRadios: Array.from(document.querySelectorAll('input[name="o-color"]')),
       scoreX: document.getElementById('score-x'),
       scoreO: document.getElementById('score-o'),
       scoreDraw: document.getElementById('score-draw')
@@ -104,6 +106,41 @@ class TicTacToeGame {
     this.elements.restartButton.addEventListener('click', () => this.startNewRound());
     this.elements.resetScoresBtn.addEventListener('click', () => this.resetScores());
     this.elements.board.addEventListener('keydown', (e) => this.handleKeyboardNavigation(e));
+
+    // Color change listeners
+    this.elements.xColorRadios.forEach(radio => {
+      radio.addEventListener('change', () => this.handleColorChange('x'));
+    });
+    this.elements.oColorRadios.forEach(radio => {
+      radio.addEventListener('change', () => this.handleColorChange('o'));
+    });
+  }
+
+  handleColorChange(player) {
+    const colorMap = {
+      teal: '#2dd4bf',
+      red: '#ef4444',
+      blue: '#3b82f6',
+      green: '#22c55e',
+      purple: '#a855f7',
+      orange: '#f59e0b',
+      pink: '#ec4899',
+      cyan: '#06b6d4',
+      yellow: '#eab308',
+      lime: '#84cc16'
+    };
+
+    if (player === 'x') {
+      const selectedColor = this.elements.xColorRadios.find(r => r.checked)?.value;
+      if (selectedColor && colorMap[selectedColor]) {
+        document.documentElement.style.setProperty('--x-color', colorMap[selectedColor]);
+      }
+    } else {
+      const selectedColor = this.elements.oColorRadios.find(r => r.checked)?.value;
+      if (selectedColor && colorMap[selectedColor]) {
+        document.documentElement.style.setProperty('--o-color', colorMap[selectedColor]);
+      }
+    }
   }
 
   handleDifficultyChange() {
