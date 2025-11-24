@@ -1,9 +1,9 @@
-// /script.js - v3.2 Cyberpunk Logic Integration
+// /script.js - v4.0 Brutalist/Functionalist Logic
 /**
- * Tic Tac Toe Game - Enhanced with Strategic AI & Cyberpunk Theme
- * Features: Three difficulty levels, improved game logic,
+ * Tic Tac Toe Game - Brutalist Design Philosophy
+ * Features: Three difficulty levels, explicit state communication,
  * strategic rule-based AI, and optimized minimax algorithm.
- * Logic based on provided cyberpunk pseudocode.
+ * Principles: Verbosity over opacity, explicit over implicit.
  */
 
 class TicTacToeGame {
@@ -126,9 +126,9 @@ class TicTacToeGame {
       const difficultyNames = {
         'easy': 'Casual',
         'medium': 'Strategic', 
-        'hard': 'Expert'
+        'hard': 'Expert (Unbeatable)'
       };
-      this.setStatus(`AI Difficulty: ${difficultyNames[selectedDifficulty]}${this.state.gameState === this.GAME_STATES.PLAYING ? ' - Applied!' : ''}`);
+      this.setStatus(`AI DIFFICULTY SET TO: ${difficultyNames[selectedDifficulty].toUpperCase()}${this.state.gameState === this.GAME_STATES.PLAYING ? ' - APPLIED TO NEXT MOVE' : ''}`);
     }
   }
 
@@ -140,7 +140,7 @@ class TicTacToeGame {
       this.elements.humanRadios.forEach(radio => {
         radio.checked = radio.value === this.state.humanPlayer;
       });
-      this.setStatus('Cannot change player mid-game. Start New Round first.');
+      this.setStatus('CANNOT CHANGE PLAYER - GAME IN PROGRESS - START NEW ROUND');
       return;
     }
 
@@ -168,7 +168,7 @@ class TicTacToeGame {
     this.elements.cells[0].focus();
 
     // Update display
-    this.setStatus(`Welcome to Cyber-Tic-Tac-Toe! Player ${this.state.currentPlayer.toUpperCase()}, make your move.`);
+    this.setStatus(`GAME START - PLAYER ${this.state.currentPlayer.toUpperCase()} TURN`);
 
     // If AI starts (human is O), schedule AI move
     if (this.state.currentPlayer === this.state.aiPlayer) {
@@ -198,7 +198,7 @@ class TicTacToeGame {
   // --- Player Input and Move Processing ---
   handlePlayerInput(event) {
     if (this.state.gameState !== this.GAME_STATES.PLAYING) {
-        this.setStatus("Game is over! Start a new game.");
+        this.setStatus("GAME OVER - START NEW ROUND TO CONTINUE");
         return;
     }
     
@@ -208,12 +208,12 @@ class TicTacToeGame {
     if (cellIndex < 0 || cellIndex > 8) return;
     
     if (this.state.currentPlayer !== this.state.humanPlayer) {
-      this.setStatus('Wait for your turn!');
+      this.setStatus('WAIT - AI IS PROCESSING');
       return;
     }
     
     if (this.state.board[cellIndex] !== null) {
-      this.setStatus('Neural node already occupied. Choose another.');
+      this.setStatus('INVALID MOVE - CELL OCCUPIED - SELECT ANOTHER');
       return;
     }
 
@@ -261,7 +261,7 @@ class TicTacToeGame {
       return;
     }
     
-    this.setStatus('AI analyzing neural pathways...');
+    this.setStatus('AI PROCESSING - CALCULATING MOVE...');
     setTimeout(() => this.makeAIMove(), this.AI_DELAY);
   }
 
@@ -311,17 +311,17 @@ class TicTacToeGame {
     if (isDraw) {
       this.state.gameState = this.GAME_STATES.DRAW;
       this.state.scores.d++;
-      this.setStatus("DRAW! Network Equilibrium Achieved.");
+      this.setStatus("DRAW - ALL CELLS FILLED - NO WINNER");
       this.elements.statusDisplay.classList.add('draw');
     } else {
       this.state.gameState = winner === this.PLAYER_X ? this.GAME_STATES.X_WINS : this.GAME_STATES.O_WINS;
       
       if (winner === this.PLAYER_X) {
         this.state.scores.x++;
-        this.setStatus("PLAYER X WINS! Data Stream Activated!");
+        this.setStatus("PLAYER X WINS - THREE IN A ROW");
       } else {
         this.state.scores.o++;
-        this.setStatus("PLAYER O WINS! Neural Network Assimilated!");
+        this.setStatus("PLAYER O WINS - THREE IN A ROW");
       }
       
       const winningCombo = this.getWinningCombination();
@@ -336,7 +336,7 @@ class TicTacToeGame {
 
   switchTurns() {
     this.state.currentPlayer = this.state.currentPlayer === this.PLAYER_X ? this.PLAYER_O : this.PLAYER_X;
-    this.setStatus(`Player ${this.state.currentPlayer.toUpperCase()}, your turn.`);
+    this.setStatus(`PLAYER ${this.state.currentPlayer.toUpperCase()} TURN - SELECT CELL`);
   }
   
   getBestAIMove() {
@@ -565,7 +565,7 @@ class TicTacToeGame {
     this.state.scores = { x: 0, o: 0, d: 0 };
     this.saveScores();
     this.renderScores();
-    this.setStatus('Neural Grid Statistics Purged');
+    this.setStatus('SCORES RESET - ALL COUNTERS SET TO ZERO');
   }
 
   handleKeyboardNavigation(event) {

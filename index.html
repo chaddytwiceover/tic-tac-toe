@@ -4,22 +4,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tic Tac Toe — The Lab</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Tic Tac Toe — Strategic Game Interface</title>
+  <meta name="description" content="Brutalist design tic-tac-toe game with AI opponents. Dense, information-rich interface focused on function over form." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="backdrop" aria-hidden="true"></div>
 
   <div class="container">
     <header>
       <div class="brand">
         <h1>Tic Tac Toe</h1>
-        <p>Neural Grid Challenge <span class="version">v3.0</span></p>
+        <p>Strategic Grid Game <span class="version">v4.0</span></p>
       </div>
-      <a href="../index.html" class="back-link" aria-label="Back to The Lab">&larr; Back to The Lab</a>
+      <a href="../index.html" class="back-link" aria-label="Back to Main">&larr; Back</a>
     </header>
 
     <main>
@@ -40,13 +37,13 @@
           <div id="winning-line" class="winning-line" aria-hidden="true"></div>
         </div>
 
-        <div id="status-display" class="status-display" role="status" aria-live="polite">Your move (X)</div>
+        <div id="status-display" class="status-display" role="status" aria-live="polite">PLAYER X - MAKE YOUR MOVE
       </div>
 
       <div class="sidebar">
         <section class="controls">
           <div id="difficulty-selector" class="difficulty-selector" role="radiogroup" aria-label="AI Difficulty">
-            <span class="difficulty-label">AI Difficulty</span>
+            <span class="difficulty-label">AI Difficulty Level</span>
             <div class="radio-group">
               <input type="radio" id="easy" name="difficulty" value="easy" checked />
               <label for="easy">Casual</label>
@@ -57,19 +54,19 @@
             </div>
             <div class="radio-group">
               <input type="radio" id="hard" name="difficulty" value="hard" />
-              <label for="hard">Expert</label>
+              <label for="hard">Expert (Unbeatable)</label>
             </div>
           </div>
 
           <div id="human-selector" class="difficulty-selector" role="radiogroup" aria-label="You Play As">
-            <span class="difficulty-label">You Play As</span>
+            <span class="difficulty-label">Player Selection</span>
             <div class="radio-group">
               <input type="radio" id="human-x" name="human" value="x" checked />
-              <label for="human-x">X</label>
+              <label for="human-x">Play as X</label>
             </div>
             <div class="radio-group">
               <input type="radio" id="human-o" name="human" value="o" />
-              <label for="human-o">O</label>
+              <label for="human-o">Play as O</label>
             </div>
           </div>
         </section>
