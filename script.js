@@ -21,6 +21,7 @@ class TicTacToeGame {
     ];
     this.STORAGE_KEY = 'ttt_scores_v3';
     this.AI_DELAY = 500;
+    this.aiMoveTimeoutId = null;
     this.CENTER = 4;
     this.CORNERS = [0, 2, 6, 8];
     this.EDGES = [1, 3, 5, 7];
@@ -169,6 +170,8 @@ class TicTacToeGame {
   }
 
   startNewRound() {
+    this.clearPendingAIMove();
+
     this.state.gameState = this.GAME_STATES.PLAYING;
     this.state.currentPlayer = this.PLAYER_X;
     this.state.board.fill(null);
@@ -254,9 +257,14 @@ class TicTacToeGame {
     if (this.state.gameState !== this.GAME_STATES.PLAYING || this.state.currentPlayer !== this.state.aiPlayer) {
       return;
     }
+
+    this.clearPendingAIMove();
     
     this.setStatus('AI is thinking...');
-    setTimeout(() => this.makeAIMove(), this.AI_DELAY);
+    this.aiMoveTimeoutId = setTimeout(() => {
+      this.aiMoveTimeoutId = null;
+      this.makeAIMove();
+    }, this.AI_DELAY);
   }
 
   makeAIMove() {
@@ -301,6 +309,8 @@ class TicTacToeGame {
   }
 
   endGame(isDraw, winner = null) {
+    this.clearPendingAIMove();
+
     if (isDraw) {
       this.state.gameState = this.GAME_STATES.DRAW;
       this.state.scores.d++;
@@ -325,6 +335,13 @@ class TicTacToeGame {
     
     this.renderScores();
     this.saveScores();
+  }
+
+  clearPendingAIMove() {
+    if (this.aiMoveTimeoutId !== null) {
+      clearTimeout(this.aiMoveTimeoutId);
+      this.aiMoveTimeoutId = null;
+    }
   }
 
   switchTurns() {
