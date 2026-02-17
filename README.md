@@ -1,16 +1,16 @@
-# Tic Tac Toe - Neural Grid Challenge
+# Tic Tac Toe
 
-A modern, cyberpunk-themed Tic Tac Toe game with AI opponents of varying difficulty levels.
+A modern Tic Tac Toe game with AI opponents of varying difficulty levels.
 
 ## Features
 
 - **Three AI Difficulty Levels**
-  - **Casual**: Random moves with slight strategic preference
-  - **Strategic**: Rule-based AI following classical tic-tac-toe strategy
-  - **Expert**: Unbeatable AI using minimax algorithm with alpha-beta pruning
+  - **Easy**: Random moves with slight strategic preference
+  - **Medium**: Rule-based AI following classical tic-tac-toe strategy
+  - **Hard**: Unbeatable AI using minimax algorithm with alpha-beta pruning
 
 - **Modern UI/UX**
-  - Cyberpunk-themed design with neon effects
+  - Clean, high-contrast design
   - Smooth animations and transitions
   - Fully responsive layout for mobile and desktop
   - Accessibility features including keyboard navigation and screen reader support
